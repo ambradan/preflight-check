@@ -42,7 +42,7 @@ You: "No, I meant personal tasks, not team"
 
 ## 🚀 Demo
 
-**Live Demo:** [preflight-check.lovable.app](https://preflight-check.lovable.app) *(update with actual link)*
+**Live Demo:** [concept-refine.lovable.app](https://concept-refine.lovable.app)
 
 ### Example
 
