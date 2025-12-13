@@ -1,0 +1,4 @@
+project_id = "pugjghiivplihxvprmzv"
+
+[functions.preflight-analyze]
+verify_jwt = false
