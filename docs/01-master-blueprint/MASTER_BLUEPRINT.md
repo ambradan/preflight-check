@@ -226,6 +226,35 @@ We're using AI to validate descriptions for AI tools. This creates a virtuous cy
 
 **Implementation Implication:** The specialized system prompt IS the product. Protect and iterate on it.
 
+### 6.4 ⚠️ Differentiation from Security Scan (CRITICAL)
+
+Lovable already has **Security Scan**, which acts AFTER code generation.
+Preflight Check acts **BEFORE** any code exists.
+
+| Security Scan (existing) | Preflight Check (ours) |
+|--------------------------|------------------------|
+| **After** generation | **Before** generation |
+| Analyzes **code** | Analyzes **idea/prompt** |
+| Final step (pre-publish) | **Step zero** (pre-generation) |
+| Answers: "Is the code secure?" | Answers: "Is the idea clear?" |
+
+**Pitch phrase (memorize this):**
+
+> "Security Scan catches **code** problems. Preflight Check catches **idea** problems — before any code exists."
+
+**Complete Loop:**
+
+```
+Idea → [PREFLIGHT CHECK] → Generate → Build → [SECURITY SCAN] → Publish
+        ↑ us                                    ↑ them
+```
+
+**If a judge asks "But Lovable already has Security Scan?":**
+
+> "Security Scan is the last step — it catches code problems before publish. Preflight is step zero — it catches idea problems before generation. Together they complete the loop. Different layer, same philosophy."
+
+**Implementation Implication:** This positioning is critical for pitch. The team must be able to articulate this distinction instantly.
+
 ---
 
 ## 7. TECHNICAL ARCHITECTURE

@@ -35,9 +35,10 @@ Output:
 └─ Status values:     "needs_work" | "ready"
 
 Timing:
-├─ API timeout:       30 seconds
+├─ API timeout:       15 seconds
+├─ Cooldown:          4 seconds (after every run)
 ├─ Rate limit:        None (Lovable handles)
-└─ Cooldown:          None
+└─ Max output:        120 words
 ```
 
 ---
@@ -106,14 +107,42 @@ interface PreflightRequest {
 
 ### Response Model
 
+**Note:** AI outputs plain text with emoji headers (not JSON).
+
 ```typescript
+// Parsed result from plain text output
 interface PreflightResponse {
   status: "needs_work" | "ready";
+  raw: string;                 // Always keep raw output
   ambiguities: string[];       // max 3 items, max 15 words each
   edge_cases: string[];        // max 3 items, max 15 words each
   clarifying_fixes: string[];  // max 3 items, format: "Add: \"...\""
-  optional_tip?: string;       // only when status = "ready"
 }
+```
+
+### Raw Output Format
+
+```
+⚠️ What's unclear
+• [point]
+• [point]
+• [point]
+
+🧨 What could break
+• [scenario]
+• [scenario]
+• [scenario]
+
+🛠️ What to add before generating
+• Add: "[specific sentence]"
+• Add: "[specific sentence]"
+• Add: "[specific sentence]"
+```
+
+OR (if ready):
+
+```
+✅ Ready to generate. No major issues found.
 ```
 
 ### Validation Result Model
@@ -150,9 +179,26 @@ interface AppState {
 
 | Constraint | Value | Rationale |
 |------------|-------|-----------|
-| `api_timeout` | 30000 ms | UX threshold for waiting |
+| `api_timeout` | 15000 ms (15s) | UX threshold - fail fast |
+| `cooldown` | 4000 ms (4s) | Prevent spam clicks, credit burn |
 | `debounce_input` | 0 ms | No debounce (analyze on click only) |
 | `loading_min` | 500 ms | Prevent flash of loading state |
+
+### Cooldown Behavior
+
+```
+Any run completes (success OR failure)
+    │
+    ▼
+Cooldown starts: 4 seconds
+Button text: "Wait 4s..." → "Wait 3s..." → "Wait 2s..." → "Wait 1s..."
+    │
+    ▼
+Cooldown expires
+Button re-enabled: "Run Preflight"
+```
+
+**Critical:** Retry does NOT bypass cooldown.
 
 ---
 
@@ -230,7 +276,7 @@ Returned when description is clear.
 | `EMPTY_INPUT` | 400 | Input is empty | "Please enter a description" |
 | `TOO_SHORT` | 400 | Input < 10 chars | "Please enter at least 10 characters" |
 | `TOO_LONG` | 400 | Input > 2000 chars | "Description too long (max 2000 characters)" |
-| `API_TIMEOUT` | 504 | Claude didn't respond in 30s | "Analysis taking too long. Try again?" |
+| `API_TIMEOUT` | 504 | Claude didn't respond in 15s | "Preflight couldn't run this time. Try again." |
 | `API_ERROR` | 500 | Claude API error | "Service temporarily unavailable" |
 | `PARSE_ERROR` | 500 | Invalid JSON from Claude | "Could not analyze. Try rephrasing?" |
 | `NETWORK_ERROR` | 0 | No network connection | "Connection error. Check your internet." |
@@ -238,57 +284,65 @@ Returned when description is clear.
 
 ---
 
-## 📊 EXAMPLE PAYLOADS
+## 📊 EXAMPLE OUTPUTS
 
-### Example 1: Vague Input
+### Example 1: Vague Input (needs_work)
 
-**Request:**
-```json
-{
-  "description": "App per gestire task del team"
-}
+**Input:**
+```
+App per gestire task del team
 ```
 
-**Response:**
-```json
-{
-  "status": "needs_work",
-  "ambiguities": [
-    "Who are users — individuals, managers, or both?",
-    "How organized — lists, boards, or calendar?",
-    "What does 'manage' mean — create, assign, track?"
-  ],
-  "edge_cases": [
-    "Hundreds of tasks with no organization",
-    "Multiple users editing same task simultaneously",
-    "Tasks without due dates getting lost"
-  ],
-  "clarifying_fixes": [
-    "Add: \"Task manager for small teams (3-5 people)\"",
-    "Add: \"Kanban board: To Do, In Progress, Done\"",
-    "Add: \"Each task has: title, assignee, due date, status\""
-  ]
-}
+**AI Output (plain text):**
+```
+⚠️ What's unclear
+• Who are users — individuals, managers, or both?
+• How organized — lists, boards, or calendar?
+• What does 'manage' mean — create, assign, track?
+
+🧨 What could break
+• Hundreds of tasks with no organization
+• Multiple users editing same task simultaneously
+• Tasks without due dates getting lost
+
+🛠️ What to add before generating
+• Add: "Task manager for small teams (3-5 people)"
+• Add: "Kanban board: To Do, In Progress, Done"
+• Add: "Each task has: title, assignee, due date, status"
 ```
 
-### Example 2: Clear Input
+### Example 2: Clear Input (ready)
 
-**Request:**
-```json
-{
-  "description": "Personal BMI calculator. Two fields: weight in kg, height in cm. One Calculate button. Shows numeric result and category (underweight, normal, overweight, obese). No login. No data storage."
-}
+**Input:**
+```
+A BMI calculator. Two fields: weight (kg), height (cm). One button: Calculate. Shows result with category (underweight/normal/overweight/obese). Color-coded result. No login. No data saved. Mobile responsive.
 ```
 
-**Response:**
-```json
-{
-  "status": "ready",
-  "ambiguities": [],
-  "edge_cases": [],
-  "clarifying_fixes": [],
-  "optional_tip": "Consider showing healthy BMI range (18.5-24.9) for reference"
-}
+**AI Output (plain text):**
+```
+✅ Ready to generate. No major issues found.
+```
+
+### Example 3: Partial Input (needs_work, fewer bullets)
+
+**Input:**
+```
+E-commerce for selling handmade jewelry with Stripe payments
+```
+
+**AI Output (plain text):**
+```
+⚠️ What's unclear
+• Single seller or marketplace with multiple sellers?
+• Shipping — flat rate, calculated, or pickup only?
+
+🧨 What could break
+• Product with multiple variants (size, color)
+• Out of stock handling
+
+🛠️ What to add before generating
+• Add: "Single-seller shop, I am the only vendor"
+• Add: "Flat rate shipping €5, free over €50"
 ```
 
 ---

@@ -63,7 +63,7 @@ This document specifies all error scenarios and handling strategies for Prefligh
 | Error Code | Trigger | Severity | Blocking? |
 |------------|---------|----------|-----------|
 | `NETWORK_ERROR` | fetch() throws | Medium | Yes |
-| `TIMEOUT` | No response in 30s | Medium | Yes |
+| `TIMEOUT` | No response in 15s | Medium | Yes |
 
 **Handling:** Show error state with retry button.
 
@@ -105,7 +105,7 @@ This document specifies all error scenarios and handling strategies for Prefligh
 | Error | Detection | Response | UI State | Retry |
 |-------|-----------|----------|----------|-------|
 | Offline | `navigator.onLine === false` | "Check your internet" | Error card | Auto on reconnect |
-| Timeout | 30s AbortController | "Taking too long" | Error card | Manual button |
+| Timeout | 15s AbortController | "Taking too long" | Error card | Manual button (respects cooldown) |
 | Connection refused | fetch throws TypeError | "Connection error" | Error card | Manual button |
 
 ### 3.3 API Errors
@@ -136,30 +136,58 @@ This document specifies all error scenarios and handling strategies for Prefligh
 User clicks "Analyze"
     │
     ▼
-API Call
+API Call (timeout: 15s)
     │
-    ├─── Success ──────► Show Results
+    ├─── Success ──────► Show Results ──► Cooldown 4s starts
     │
-    └─── Error ──────► Show Error State
+    └─── Error ──────► Show Error State ──► Cooldown 4s starts
+                            │
+                            ▼
+                       Button shows "Wait Xs..." countdown
+                            │
+                            ▼
+                       Cooldown expires
                             │
                             ▼
                        User clicks "Try Again"
                             │
                             ▼
-                       API Call (retry)
-                            │
-                            ├─── Success ──► Show Results
-                            │
-                            └─── Error ───► Show Error State (max 3 retries)
+                       API Call (retry) ──► Cooldown 4s starts again
 ```
 
-### 4.2 Rate Limit Recovery
+**Critical:** Retry does NOT bypass cooldown. Every run (success or fail) triggers 4s cooldown.
+
+### 4.2 Cooldown Flow (CRITICAL)
+
+```
+Any API call completes (success OR failure)
+    │
+    ▼
+Start 4s cooldown
+Button disabled
+Button text: "Wait 4s..." → "Wait 3s..." → "Wait 2s..." → "Wait 1s..."
+    │
+    ▼
+Cooldown expires
+    │
+    ▼
+Button re-enabled: "Run Preflight"
+User can submit again
+```
+
+**Why cooldown matters:**
+- Prevents credit burn from spam clicks
+- Prevents double API calls from nervous users
+- Gives AI time to complete
+- Clear feedback = fewer frustrated retries
+
+### 4.3 Rate Limit Recovery
 
 ```
 API returns 429
     │
     ▼
-Disable button for 60s
+Disable button for 60s (overrides 4s cooldown)
 Show countdown: "Try again in 60s"
     │
     ▼
@@ -170,7 +198,7 @@ Re-enable button
 User can retry
 ```
 
-### 4.3 Parse Error Recovery
+### 4.4 Parse Error Recovery
 
 ```
 JSON parse fails OR schema invalid
