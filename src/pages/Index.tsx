@@ -3,7 +3,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Copy, RotateCcw } from "lucide-react";
+import { Loader2, Copy, RotateCcw, X } from "lucide-react";
+
+const ONBOARDING_KEY = "preflight_onboarding_seen";
 
 const PRESETS = [
   {
@@ -93,7 +95,19 @@ export default function Index() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [chipPulse, setChipPulse] = useState(false);
+  const [buttonPulse, setButtonPulse] = useState(false);
   const { toast } = useToast();
+
+  // Initialize onboarding state
+  useEffect(() => {
+    if (!localStorage.getItem(ONBOARDING_KEY)) {
+      setShowOnboarding(true);
+      setChipPulse(true);
+      setButtonPulse(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (cooldown > 0) {
@@ -123,13 +137,31 @@ export default function Index() {
   const isValidLength = charCount >= MIN_CHARS && charCount <= MAX_CHARS;
   const canRun = isValidLength && !isLoading && cooldown === 0;
 
-  const handlePreset = (content: string) => {
+  const handlePreset = (content: string, label: string) => {
     setInput(content);
     setAnalysis(null);
+    if (label === "Task manager") {
+      setChipPulse(false);
+    }
+  };
+
+  const handleDismissOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem(ONBOARDING_KEY, "true");
+  };
+
+  const completeOnboarding = () => {
+    setShowOnboarding(false);
+    setChipPulse(false);
+    setButtonPulse(false);
+    localStorage.setItem(ONBOARDING_KEY, "true");
   };
 
   const handleRun = useCallback(async () => {
     if (!canRun) return;
+
+    // Complete onboarding on first run
+    completeOnboarding();
 
     setIsLoading(true);
     setAnalysis(null);
@@ -206,13 +238,33 @@ export default function Index() {
 
         {/* Main Card */}
         <div className="bg-background rounded-xl shadow-sm border p-6">
+          {/* Onboarding Banner */}
+          {showOnboarding && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded shadow-sm mb-4 flex items-center justify-between">
+              <p className="text-sm text-blue-800">
+                🎓 First time? Click &apos;Task manager&apos; → then &apos;Run Preflight&apos; to see it in action!
+              </p>
+              <button
+                onClick={handleDismissOnboarding}
+                className="text-blue-600 hover:text-blue-800 p-1"
+                aria-label="Dismiss"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
           {/* Preset Chips */}
           <div className="flex flex-wrap gap-2 mb-4">
             {PRESETS.map((preset) => (
               <button
                 key={preset.label}
-                onClick={() => handlePreset(preset.content)}
-                className="px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 rounded-full transition-colors text-foreground"
+                onClick={() => handlePreset(preset.content, preset.label)}
+                className={`px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 rounded-full transition-colors text-foreground ${
+                  chipPulse && preset.label === "Task manager"
+                    ? "ring-2 ring-blue-400 animate-pulse"
+                    : ""
+                }`}
               >
                 {preset.label}
               </button>
@@ -243,7 +295,7 @@ export default function Index() {
             <Button
               onClick={handleRun}
               disabled={!canRun}
-              className="w-full bg-primary hover:bg-primary/90"
+              className={`w-full bg-primary hover:bg-primary/90 ${buttonPulse ? "animate-pulse" : ""}`}
             >
               {isLoading ? (
                 <>
