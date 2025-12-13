@@ -1,7 +1,7 @@
 # Preflight Check — Start Here
 
 **Last Updated:** December 13, 2025  
-**Version:** 1.0  
+**Version:** 2.0  
 **Status:** Hackathon MVP — Implementation Ready  
 **Stream Coding:** v3.3 Compliant
 
@@ -46,7 +46,8 @@ preflight-check/
 │   ├── 02-technical-specs/
 │   │   ├── Part01_System_Prompt.md         ⚙️ AI prompt specification
 │   │   ├── Part02_UI_Components.md         ⚙️ UI specification
-│   │   └── Part03_Error_Handling.md        ⚙️ Error scenarios
+│   │   ├── Part03_Error_Handling.md        ⚙️ Error scenarios
+│   │   └── LOVABLE_PROMPT.md               🚀 Ready-to-paste Lovable prompt
 │   │
 │   └── 03-schemas/
 │       └── 00_SCHEMA_REFERENCE.md          🗄️ Data models (single source)
@@ -125,10 +126,11 @@ Time: 15 minutes
 Purpose: Implementation details
 ```
 
-**4. Copy System Prompt to Lovable:**
+**4. Copy Prompt to Lovable:**
 ```
-Source: 02-technical-specs/Part01_System_Prompt.md → Section 2
-Action: Copy verbatim into Lovable AI integration
+Source: 02-technical-specs/LOVABLE_PROMPT.md
+Action: Copy the ENTIRE prompt into Lovable and click Chat
+Note: Includes AI integration instructions for Lovable AI (Gemini 2.5 Flash)
 ```
 
 ### For Testers (Paolo):

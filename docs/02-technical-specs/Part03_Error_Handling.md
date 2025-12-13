@@ -1,7 +1,7 @@
 # Preflight Check — Technical Specs — Part 03
 ## Error Handling Specification
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Last Updated:** December 13, 2025  
 **Status:** Implementation Ready  
 **Stream Coding:** v3.3 Compliant  
@@ -41,8 +41,8 @@ This document specifies all error scenarios and handling strategies for Prefligh
 |----------|--------|----------|
 | Validation | Client-side | Instant feedback |
 | Network | Connection | Retry button |
-| API | Lovable/Claude | Retry button |
-| Parse | JSON response | Rephrase suggestion |
+| API | Lovable AI | Retry button |
+| Parse | Plain text response | Show raw + rephrase |
 
 ---
 
@@ -82,11 +82,11 @@ This document specifies all error scenarios and handling strategies for Prefligh
 
 | Error Code | Trigger | Severity |
 |------------|---------|----------|
-| `PARSE_ERROR` | JSON.parse() fails | Medium |
-| `SCHEMA_ERROR` | Missing required fields | Medium |
-| `INVALID_STATUS` | Status not in enum | Medium |
+| `PARSE_ERROR` | Can't find emoji headers in response | Medium |
+| `SCHEMA_ERROR` | Missing expected sections | Medium |
+| `INVALID_STATUS` | Neither "Ready" nor emoji sections found | Medium |
 
-**Handling:** Show error state, suggest rephrasing.
+**Handling:** Show raw output (never hide), suggest rephrasing.
 
 ---
 
@@ -104,8 +104,8 @@ This document specifies all error scenarios and handling strategies for Prefligh
 
 | Error | Detection | Response | UI State | Retry |
 |-------|-----------|----------|----------|-------|
-| Offline | `navigator.onLine === false` | "Check your internet" | Error card | Auto on reconnect |
-| Timeout | 15s AbortController | "Taking too long" | Error card | Manual button (respects cooldown) |
+| Offline | `navigator.onLine === false` | "Connection error. Check your internet." | Error card | Auto on reconnect |
+| Timeout | 15s AbortController | "Preflight couldn't run this time. Try again." | Error card | Manual button (respects cooldown) |
 | Connection refused | fetch throws TypeError | "Connection error" | Error card | Manual button |
 
 ### 3.3 API Errors
@@ -121,10 +121,11 @@ This document specifies all error scenarios and handling strategies for Prefligh
 
 | Error | Detection | Response | Suggestion |
 |-------|-----------|----------|------------|
-| Invalid JSON | `JSON.parse()` throws | "Could not analyze" | Rephrase |
-| Missing status | `!result.status` | "Invalid response" | Rephrase |
-| Invalid status | `!['needs_work','ready'].includes(status)` | "Invalid response" | Rephrase |
-| Missing arrays | `!Array.isArray(ambiguities)` | "Invalid response" | Rephrase |
+| No emoji headers | Can't find ⚠️ 🧨 🛠️ | Show raw output | Rephrase |
+| Missing sections | Partial emoji headers found | Show raw output + partial cards | Continue |
+| Malformed response | Empty or unexpected format | Show raw output | Rephrase |
+
+**Critical:** ALWAYS show raw output. Parsing is for styling only, never hide AI response.
 
 ---
 
@@ -201,10 +202,10 @@ User can retry
 ### 4.4 Parse Error Recovery
 
 ```
-JSON parse fails OR schema invalid
+Parsing fails (can't find emoji headers)
     │
     ▼
-Show error: "Could not analyze. Try rephrasing?"
+Show raw output + error: "Could not analyze. Try rephrasing?"
 Keep user input
     │
     ▼
@@ -234,7 +235,7 @@ New API call
 | Error | Message | Tone |
 |-------|---------|------|
 | Offline | "Connection error. Check your internet." | Helpful |
-| Timeout | "Analysis taking too long. Try again?" | Empathetic |
+| Timeout | "Preflight couldn't run this time. Try again." | Empathetic |
 
 ### 5.3 API Messages
 
@@ -335,7 +336,7 @@ catch (e) {
 | Test ID | Scenario | Mock | Expected UI |
 |---------|----------|------|-------------|
 | ERR-N01 | Offline | `navigator.onLine = false` | "Check your internet" |
-| ERR-N02 | Timeout | Delay 31s | "Taking too long" |
+| ERR-N02 | Timeout | Delay 16s | "Preflight couldn't run this time. Try again." |
 | ERR-N03 | DNS failure | fetch throws | "Connection error" |
 | ERR-N04 | Connection reset | fetch throws | "Connection error" |
 
@@ -352,10 +353,10 @@ catch (e) {
 
 | Test ID | Scenario | Mock Response | Expected UI |
 |---------|----------|---------------|-------------|
-| ERR-P01 | Invalid JSON | `{invalid` | "Could not analyze" |
-| ERR-P02 | Missing status | `{}` | "Something went wrong" |
-| ERR-P03 | Invalid status | `{status: "bad"}` | "Something went wrong" |
-| ERR-P04 | Non-array items | `{status: "needs_work", ambiguities: "string"}` | "Something went wrong" |
+| ERR-P01 | No emoji headers | "Some random text" | Show raw output |
+| ERR-P02 | Partial headers | "⚠️ What's unclear\n• item" | Show partial cards + raw |
+| ERR-P03 | Ready response | "✅ Ready to generate..." | Show success state |
+| ERR-P04 | Empty response | "" | Show error + raw |
 
 ### 7.5 Recovery Tests
 
@@ -370,23 +371,35 @@ catch (e) {
 ### 7.6 Test Fixtures
 
 ```typescript
-// Mock responses for testing
+// Mock responses for testing (plain text format)
 const mockResponses = {
-  success: {
+  success_needs_work: {
     status: 200,
-    body: { status: 'needs_work', ambiguities: ['item'], edge_cases: [], clarifying_fixes: [] }
+    body: `⚠️ What's unclear
+• Who are the users?
+• What data is stored?
+
+🧨 What could break
+• No error handling specified
+
+🛠️ What to add before generating
+• Add: "Users are small business owners"`
+  },
+  success_ready: {
+    status: 200,
+    body: '✅ Ready to generate. No major issues found.'
   },
   serverError: {
     status: 500,
-    body: { error: 'Internal Server Error' }
+    body: 'Internal Server Error'
   },
   rateLimited: {
     status: 429,
     headers: { 'Retry-After': '60' }
   },
-  invalidJson: {
+  malformed: {
     status: 200,
-    body: '{invalid json'
+    body: 'Something unexpected happened'
   }
 };
 ```
@@ -415,7 +428,7 @@ const mockResponses = {
 
 **Document Type:** Implementation (HOW)  
 **Part:** 3 of 3 (Technical Specs)  
-**Version:** 1.0  
+**Version:** 1.1  
 **Last Updated:** December 13, 2025  
 **Stream Coding:** v3.3 Compliant
 

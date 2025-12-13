@@ -1,7 +1,7 @@
 # Preflight Check — Technical Specs — Part 02
 ## UI Components Specification
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Last Updated:** December 13, 2025  
 **Status:** Implementation Ready  
 **Stream Coding:** v3.3 Compliant  
@@ -36,7 +36,20 @@ This document specifies all UI components for the Preflight Check MVP.
 | Tailwind CSS | Styling |
 | TypeScript | Type safety |
 
-### 1.3 Design Principles
+### 1.3 AI Integration
+
+| Aspect | Value |
+|--------|-------|
+| AI Provider | Lovable AI (Gemini 2.5 Flash) |
+| API Keys | None required (built-in) |
+| System Prompt | Stored as constant in `/src/constants/systemPrompt.ts` |
+| Output Format | Plain text with emoji headers |
+| Timeout | 15 seconds |
+| Cooldown | 4 seconds after every call |
+
+**See:** [LOVABLE_PROMPT.md](./LOVABLE_PROMPT.md) for complete integration instructions.
+
+### 1.4 Design Principles
 
 1. **Minimal** — One input, one button, one output
 2. **Scannable** — Results readable in 5 seconds
@@ -53,19 +66,19 @@ This document specifies all UI components for the Preflight Check MVP.
 ┌─────────────────────────────────────────────────────────┐
 │                      HEADER                              │
 │              ✈️ PREFLIGHT CHECK                          │
-│     Find what's missing before AI guesses wrong          │
+│     Catch issues before generating                        │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
 │  ┌─────────────────────────────────────────────────┐    │
 │  │                                                  │    │
-│  │  Describe the app you want to build...          │    │
+│  │  Describe what you want to build...            │    │
 │  │                                                  │    │
 │  │                                                  │    │
 │  │                                                  │    │
 │  └─────────────────────────────────────────────────┘    │
 │                                       [0/2000 chars]    │
 │                                                          │
-│              [ ✈️  Run Preflight Check ]                 │
+│              [ ✈️  Run Preflight ]                      │
 │                                                          │
 ├─────────────────────────────────────────────────────────┤
 │  OUTPUT AREA (hidden until results)                      │
@@ -80,7 +93,7 @@ This document specifies all UI components for the Preflight Check MVP.
 │                                                          │
 ├─────────────────────────────────────────────────────────┤
 │                      FOOTER                              │
-│        Built at OGR Torino — December 13, 2025          │
+│          Clearer input → better output                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -90,7 +103,7 @@ This document specifies all UI components for the Preflight Check MVP.
 ┌─────────────────────────┐
 │        HEADER           │
 │   ✈️ PREFLIGHT CHECK    │
-│   Find what's missing   │
+│   Catch issues before   │
 ├─────────────────────────┤
 │ ┌─────────────────────┐ │
 │ │ Describe the app... │ │
@@ -100,7 +113,7 @@ This document specifies all UI components for the Preflight Check MVP.
 │ └─────────────────────┘ │
 │              [0/2000]   │
 │                         │
-│ [✈️ Run Preflight Check]│
+│ [✈️ Run Preflight]      │
 │                         │
 ├─────────────────────────┤
 │ ┌─────────────────────┐ │
@@ -119,7 +132,8 @@ This document specifies all UI components for the Preflight Check MVP.
 │ │ • Add: "..."       │ │
 │ └─────────────────────┘ │
 ├─────────────────────────┤
-│        FOOTER           │
+│  Clearer input →        │
+│     better output       │
 └─────────────────────────┘
 ```
 
@@ -140,7 +154,7 @@ const Header: React.FC<HeaderProps> = () => (
       ✈️ Preflight Check
     </h1>
     <p className="text-gray-600 mt-2">
-      Find what's missing before AI guesses wrong
+      Catch issues before generating
     </p>
   </header>
 );
@@ -168,7 +182,7 @@ const DescriptionInput: React.FC<TextareaProps> = ({ value, onChange, disabled }
       className="w-full min-h-[120px] max-h-[300px] p-4 border rounded-lg 
                  resize-y text-base focus:ring-2 focus:ring-blue-500
                  disabled:bg-gray-100 disabled:cursor-not-allowed"
-      placeholder="Describe the app you want to build..."
+      placeholder="Describe what you want to build..."
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
@@ -222,37 +236,41 @@ interface ButtonProps {
   onClick: () => void;
   disabled: boolean;
   loading: boolean;
+  cooldown: number; // seconds remaining (0 = no cooldown)
 }
 
-const AnalyzeButton: React.FC<ButtonProps> = ({ onClick, disabled, loading }) => (
-  <button
-    className={`w-full md:w-auto px-8 py-3 rounded-lg font-medium
-      flex items-center justify-center gap-2
-      ${disabled 
-        ? 'bg-gray-300 cursor-not-allowed' 
-        : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-    onClick={onClick}
-    disabled={disabled || loading}
-  >
-    {loading ? (
-      <>
-        <Spinner /> Analyzing...
-      </>
-    ) : (
-      <>
-        ✈️ Run Preflight Check
-      </>
-    )}
-  </button>
-);
+const AnalyzeButton: React.FC<ButtonProps> = ({ onClick, disabled, loading, cooldown }) => {
+  const isDisabled = disabled || loading || cooldown > 0;
+  
+  const getButtonText = () => {
+    if (loading) return <><Spinner /> Analyzing...</>;
+    if (cooldown > 0) return `Wait ${cooldown}s...`;
+    return <>✈️ Run Preflight</>;
+  };
+  
+  return (
+    <button
+      className={`w-full md:w-auto px-8 py-3 rounded-lg font-medium
+        flex items-center justify-center gap-2
+        ${isDisabled 
+          ? 'bg-gray-300 cursor-not-allowed' 
+          : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+      onClick={onClick}
+      disabled={isDisabled}
+    >
+      {getButtonText()}
+    </button>
+  );
+};
 ```
 
-| State | Appearance |
-|-------|------------|
-| Disabled | Gray background, not-allowed cursor |
-| Enabled | Blue-600 background, white text |
-| Hover | Blue-700 background |
-| Loading | Spinner + "Analyzing..." |
+| State | Appearance | Text |
+|-------|------------|------|
+| Disabled | Gray background, not-allowed cursor | "Run Preflight" |
+| Enabled | Purple-600 background, white text | "✈️ Run Preflight" |
+| Hover | Purple-700 background | "✈️ Run Preflight" |
+| Loading | Gray background, spinner | "Analyzing..." |
+| Cooldown | Gray background | "Wait 4s..." → "Wait 3s..." → ... |
 
 ### 3.5 Result Card Component
 
@@ -304,27 +322,87 @@ const ResultCard: React.FC<ResultCardProps> = ({ type, title, icon, items }) => 
 ### 3.6 Success State Component
 
 ```tsx
-interface SuccessStateProps {
-  optionalTip?: string;
-}
-
-const SuccessState: React.FC<SuccessStateProps> = ({ optionalTip }) => (
+const SuccessState: React.FC = () => (
   <div className="p-6 rounded-lg bg-green-50 border border-green-200 text-center">
     <div className="text-4xl mb-3">✅</div>
     <h3 className="text-xl font-semibold text-green-700">Ready to Generate!</h3>
     <p className="text-green-600 mt-2">
       Your description is clear and complete.
     </p>
-    {optionalTip && (
-      <p className="text-gray-600 mt-4 text-sm">
-        💡 Optional: {optionalTip}
-      </p>
-    )}
   </div>
 );
 ```
 
-### 3.7 Error State Component
+### 3.7 AI Output Parser Component
+
+```tsx
+// Parse plain text AI output with emoji headers
+interface ParsedOutput {
+  status: 'needs_work' | 'ready';
+  ambiguities: string[];
+  edge_cases: string[];
+  clarifying_fixes: string[];
+}
+
+function parseAIOutput(raw: string): ParsedOutput | null {
+  // Check for "Ready to generate" first
+  if (raw.includes('✅ Ready to generate')) {
+    return {
+      status: 'ready',
+      ambiguities: [],
+      edge_cases: [],
+      clarifying_fixes: []
+    };
+  }
+  
+  // Try to parse sections by emoji headers
+  const sections = {
+    ambiguities: extractSection(raw, '⚠️'),
+    edge_cases: extractSection(raw, '🧨'),
+    clarifying_fixes: extractSection(raw, '🛠️')
+  };
+  
+  // If all sections found, return parsed
+  if (sections.ambiguities || sections.edge_cases || sections.clarifying_fixes) {
+    return {
+      status: 'needs_work',
+      ...sections
+    };
+  }
+  
+  // Parsing failed - return null (will show raw output)
+  return null;
+}
+
+function extractSection(raw: string, emoji: string): string[] {
+  // Find section starting with emoji
+  // Extract bullet points (lines starting with • or -)
+  // Return array of items without the bullet prefix
+}
+```
+
+**Critical:** If parsing fails, ALWAYS show raw output. Never hide AI response.
+
+### 3.8 Raw Output Display Component
+
+```tsx
+interface RawOutputProps {
+  raw: string;
+}
+
+const RawOutput: React.FC<RawOutputProps> = ({ raw }) => (
+  <details className="mt-4">
+    <summary className="text-sm text-gray-500 cursor-pointer">
+      Show raw AI output
+    </summary>
+    <pre className="mt-2 p-3 bg-gray-100 rounded text-sm whitespace-pre-wrap">
+      {raw}
+    </pre>
+  </details>
+);
+```
+
+### 3.9 Error State Component
 
 ```tsx
 interface ErrorStateProps {
@@ -355,20 +433,32 @@ const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry }) => (
 ```tsx
 interface AppState {
   input: string;
-  uiState: 'empty' | 'typing' | 'valid' | 'loading' | 'results' | 'error';
+  uiState: 'empty' | 'typing' | 'valid' | 'loading' | 'results' | 'error' | 'cooldown';
   result: PreflightResponse | null;
+  rawOutput: string | null;  // CRITICAL: Always keep raw AI output
   error: string | null;
+  cooldownSeconds: number;   // 0 = no cooldown, 4-1 = counting down
 }
 
 const initialState: AppState = {
   input: '',
   uiState: 'empty',
   result: null,
-  error: null
+  rawOutput: null,
+  error: null,
+  cooldownSeconds: 0
 };
 ```
 
-### 4.2 State Transitions
+### 4.2 Timing Constraints
+
+| Constraint | Value | Behavior |
+|------------|-------|----------|
+| API Timeout | 15 seconds | Show error if exceeded |
+| Cooldown | 4 seconds | After EVERY run (success or fail) |
+| Countdown | Visual | "Wait 4s..." → "Wait 3s..." → "Wait 2s..." → "Wait 1s..." |
+
+### 4.3 State Transitions
 
 ```
 empty ─────────────────────────────────────────────────┐
@@ -384,11 +474,11 @@ loading ────────────────────────
   │ API success              API error           │ │ │ │
   ▼                          ▼                   │ │ │ │
 results                    error                 │ │ │ │
-  │ user clicks "Check Again"                    │ │ │ │
+  │ user clicks "Check Another"                    │ │ │ │
   └──────────────────────────────────────────────┴─┴─┴─┘
 ```
 
-### 4.3 State → UI Mapping
+### 4.4 State → UI Mapping
 
 | State | Textarea | Button | Output |
 |-------|----------|--------|--------|
@@ -396,7 +486,7 @@ results                    error                 │ │ │ │
 | `typing` | Enabled, user input | Disabled | Hidden |
 | `valid` | Enabled, user input | Enabled | Hidden |
 | `loading` | Disabled | Loading spinner | Hidden |
-| `results` | Enabled | "Check Again" | 3 cards or success |
+| `results` | Enabled | "Check Another" | 3 cards or success |
 | `error` | Enabled | "Try Again" | Error message |
 
 ---
@@ -497,7 +587,7 @@ const MAX_LENGTH = 2000; // From Schema Reference
 | ST-03 | valid | Click Analyze | loading |
 | ST-04 | loading | API success | results |
 | ST-05 | loading | API error | error |
-| ST-06 | results | Click "Check Again" | valid |
+| ST-06 | results | Click "Check Another" | valid |
 | ST-07 | error | Click "Try Again" | loading |
 
 ---
@@ -511,10 +601,10 @@ For UI-specific error handling, see [Part03 Error Handling](./Part03_Error_Handl
 | UI State | Error Type | Response | Recovery |
 |----------|------------|----------|----------|
 | Input | Validation fail | Red counter, disabled button | User types more |
-| Loading | API timeout (30s) | Show error card | Retry button |
+| Loading | API timeout (15s) | Show error card | Retry button (respects 4s cooldown) |
 | Loading | Network offline | Show error card | Auto-retry on reconnect |
-| Loading | API error (500) | Show error card | Retry button |
-| Results | Parse error | Show error card | Suggest rephrase |
+| Loading | API error (500) | Show error card | Retry button (respects 4s cooldown) |
+| Results | Parse error | Show raw output | Never hide AI response |
 
 **Full error specifications:** [Part03_Error_Handling.md](./Part03_Error_Handling.md)
 
@@ -550,7 +640,7 @@ For UI-specific error handling, see [Part03 Error Handling](./Part03_Error_Handl
 
 **Document Type:** Implementation (HOW)  
 **Part:** 2 of 3 (Technical Specs)  
-**Version:** 1.0  
+**Version:** 2.0  
 **Last Updated:** December 13, 2025  
 **Stream Coding:** v3.3 Compliant
 

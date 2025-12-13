@@ -1,6 +1,6 @@
 # Preflight Check — Master Blueprint
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Last Updated:** December 13, 2025  
 **Status:** Strategic Document — Approved  
 **Stream Coding:** v3.3 Compliant  
@@ -169,7 +169,8 @@ We're using AI to validate descriptions for AI tools. This creates a virtuous cy
 | Min input | 10 chars | Prevent empty submissions |
 | Max items per section | 3 | Scannable output |
 | Max words per item | 15 | Concise, actionable |
-| API timeout | 30 seconds | UX threshold |
+| API timeout | 15 seconds | UX fail-fast |
+| Cooldown | 4 seconds | Prevent credit burn |
 
 **Implementation Implication:** Constraints are hard limits in the system prompt AND UI validation.
 
@@ -268,13 +269,13 @@ Idea → [PREFLIGHT CHECK] → Generate → Build → [SECURITY SCAN] → Publis
 │  │  Textarea (10-2000 chars)               ││
 │  │  [0/2000 chars]                         ││
 │  └─────────────────────────────────────────┘│
-│              [ Analyze ]                    │
+│            [ Run Preflight ]                │
 ├─────────────────────────────────────────────┤
 │              LOVABLE BACKEND                 │
 │  ┌─────────────────────────────────────────┐│
-│  │  Claude API (via Lovable integration)   ││
-│  │  System Prompt: Preflight Analyst       ││
-│  │  Output: JSON (status + 3 sections)     ││
+│  │  Lovable AI (Gemini 2.5 Flash)          ││
+│  │  System Prompt: SYSTEM_PROMPT constant  ││
+│  │  Output: Plain text + emoji headers     ││
 │  └─────────────────────────────────────────┘│
 ├─────────────────────────────────────────────┤
 │              OUTPUT DISPLAY                  │
@@ -292,7 +293,7 @@ Idea → [PREFLIGHT CHECK] → Generate → Build → [SECURITY SCAN] → Publis
 | Layer | Technology | Rationale |
 |-------|------------|-----------|
 | Frontend | Lovable (React + Tailwind) | Hackathon requirement |
-| AI | Claude via Lovable | Zero setup, built-in |
+| AI | Lovable AI (Gemini 2.5 Flash) | Zero setup, no API keys |
 | Hosting | Lovable deployment | Instant, free tier |
 | State | React useState | Simple, no persistence needed |
 
@@ -300,13 +301,13 @@ Idea → [PREFLIGHT CHECK] → Generate → Build → [SECURITY SCAN] → Publis
 
 ```
 1. User types description (10-2000 chars)
-2. User clicks "Analyze"
+2. User clicks "Run Preflight"
 3. Frontend validates length
-4. Request sent to Lovable backend
-5. Lovable calls Claude with system prompt
-6. Claude returns JSON response
-7. Frontend parses JSON
-8. UI displays 3 cards (or success state)
+4. Request sent to Lovable AI with SYSTEM_PROMPT constant
+5. Lovable AI (Gemini) returns plain text with emoji headers
+6. Frontend parses sections (⚠️ 🧨 🛠️) or shows raw output
+7. UI displays cards (or success state)
+8. 4-second cooldown starts
 ```
 
 **Implementation Implication:** See [Part02_UI_Components.md](../02-technical-specs/Part02_UI_Components.md) for detailed UI specs.
@@ -352,7 +353,7 @@ Idea → [PREFLIGHT CHECK] → Generate → Build → [SECURITY SCAN] → Publis
 |-----------------|--------------|
 | **Innovation** | Meta-play: AI validating for AI tools |
 | **Impact** | Solves real pain (rebuild cycles) |
-| **Technical Quality** | Clean JSON API, proper error handling |
+| **Technical Quality** | Structured plain text output, proper error handling |
 | **User Experience** | Ultra-simple (input → click → output) |
 | **Demo Completeness** | Live demo with real examples |
 
@@ -402,7 +403,7 @@ Idea → [PREFLIGHT CHECK] → Generate → Build → [SECURITY SCAN] → Publis
 ## DOCUMENT INTEGRITY
 
 **Document Type:** Strategic (WHAT and WHY)  
-**Version:** 1.0  
+**Version:** 2.0  
 **Last Updated:** December 13, 2025  
 **Stream Coding:** v3.3 Compliant
 

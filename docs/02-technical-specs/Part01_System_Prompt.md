@@ -24,14 +24,15 @@
 
 ### 1.1 Purpose
 
-This document contains the exact system prompt for Claude integration in Lovable.
+This document contains the exact system prompt for Lovable AI integration.
 
 **Critical:** Copy the system prompt in Section 2 VERBATIM. Do not modify.
 
 ### 1.2 Integration Point
 
 ```
-Lovable Project Settings → AI Configuration → System Prompt
+Store as constant: /src/constants/systemPrompt.ts
+Pass to AI call as system message
 ```
 
 ### 1.3 Dependencies
@@ -117,7 +118,7 @@ TONE:
 
 | Section | Purpose | Key Rule |
 |---------|---------|----------|
-| Identity | Who Claude is | "Preflight Check, a Senior Product Specification Analyst" |
+| Identity | Who the AI is | "Preflight Check, a Senior Product Specification Analyst" |
 | YOUR JOB | What to do | Find unclear, surface failures, suggest fixes |
 | YOUR JOB IS NOT | What NOT to do | No solutions, no features, no judgments |
 | ANALYSIS RULES | Protection | Anti-bypass for user claims |
@@ -171,7 +172,7 @@ TONE:
 |-----------------|----------------|---------------------|
 | Modify system prompt | Breaks calibration | Copy verbatim |
 | Add extra instructions | May conflict with core rules | Use as-is |
-| Remove calibration section | Claude loses proportional response | Keep calibration rules |
+| Remove calibration section | AI loses proportional response | Keep calibration rules |
 | Change emoji headers | Frontend parsing breaks | Keep exact emojis: ⚠️ 🧨 🛠️ |
 | Change output structure | Parsing logic breaks | Keep exact format |
 

@@ -30,11 +30,14 @@
 
 | File | Versione | Modifiche |
 |------|----------|-----------|
-| `Part01_System_Prompt.md` | 2.0 | Nuovo system prompt completo |
-| `Part03_Error_Handling.md` | 1.1 | Timeout 15s, Cooldown 4s |
-| `00_SCHEMA_REFERENCE.md` | 1.1 | Timing, output format |
-| `MASTER_BLUEPRINT.md` | 1.1 | Sezione 6.4 Security Scan |
-| `LOVABLE_PROMPT.md` | 1.0 | **NUOVO** - Prompt pronto |
+| `Part01_System_Prompt.md` | 2.0 | Integration point fix, rimosso "Claude" |
+| `Part02_UI_Components.md` | 2.0 | Subtitle allineato, rimosso optionalTip, "Check Another" |
+| `Part03_Error_Handling.md` | 1.1 | Plain text parsing (non JSON), error messages allineati |
+| `00_SCHEMA_REFERENCE.md` | 1.1 | Aggiunto cooldown state, rawOutput, version fix |
+| `MASTER_BLUEPRINT.md` | 2.0 | Version fix in DOCUMENT INTEGRITY |
+| `LOVABLE_PROMPT.md` | 2.0 | Fix nested code block, min 10 chars |
+| `00_START_HERE.md` | 2.0 | LOVABLE_PROMPT.md, Quick Start |
+| `README.md` | - | Tech stack Lovable AI, Quick Start |
 
 ---
 

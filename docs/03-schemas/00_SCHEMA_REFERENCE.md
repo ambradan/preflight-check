@@ -1,6 +1,6 @@
 # Preflight Check — Schema Reference
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Last Updated:** December 13, 2025  
 **Status:** Single Source of Truth  
 **Stream Coding:** v3.3 Compliant
@@ -163,13 +163,16 @@ type UIState =
   | "valid"           // Input valid, ready to analyze
   | "loading"         // API call in progress
   | "results"         // Showing analysis results
-  | "error";          // Error state
+  | "error"           // Error state
+  | "cooldown";       // Cooldown active (button disabled)
 
 interface AppState {
   input: string;
   uiState: UIState;
   result: PreflightResponse | null;
+  rawOutput: string | null;  // Always keep raw AI output
   error: string | null;
+  cooldownSeconds: number;   // 0 = no cooldown, 4-1 = counting down
 }
 ```
 
@@ -218,10 +221,10 @@ Button re-enabled: "Run Preflight"
 
 | Card Type | Background Color |
 |-----------|------------------|
-| ⚠️ Ambiguities | `#FEF3C7` (light yellow) |
-| 🧨 Edge Cases | `#FEE2E2` (light red) |
-| 🛠️ Fixes | `#DBEAFE` (light blue) |
-| ✅ Ready | `#D1FAE5` (light green) |
+| ⚠️ Ambiguities | `#FEFCE8` (yellow-50) |
+| 🧨 Edge Cases | `#FEF2F2` (red-50) |
+| 🛠️ Fixes | `#EFF6FF` (blue-50) |
+| ✅ Ready | `#F0FDF4` (green-50) |
 
 ---
 
@@ -231,12 +234,27 @@ Button re-enabled: "Run Preflight"
 
 Returned when description has issues.
 
-```json
+**AI Output (plain text):**
+```
+⚠️ What's unclear
+• item 1
+• item 2
+
+🧨 What could break
+• item 1
+
+🛠️ What to add before generating
+• Add: "specific phrase"
+```
+
+**Parsed result:**
+```typescript
 {
-  "status": "needs_work",
-  "ambiguities": ["item 1", "item 2"],
-  "edge_cases": ["item 1"],
-  "clarifying_fixes": ["Add: \"specific phrase\""]
+  status: "needs_work",
+  raw: "⚠️ What's unclear\n• item 1...",
+  ambiguities: ["item 1", "item 2"],
+  edge_cases: ["item 1"],
+  clarifying_fixes: ["Add: \"specific phrase\""]
 }
 ```
 
@@ -244,13 +262,19 @@ Returned when description has issues.
 
 Returned when description is clear.
 
-```json
+**AI Output (plain text):**
+```
+✅ Ready to generate. No major issues found.
+```
+
+**Parsed result:**
+```typescript
 {
-  "status": "ready",
-  "ambiguities": [],
-  "edge_cases": [],
-  "clarifying_fixes": [],
-  "optional_tip": "Consider adding X for polish"
+  status: "ready",
+  raw: "✅ Ready to generate. No major issues found.",
+  ambiguities: [],
+  edge_cases: [],
+  clarifying_fixes: []
 }
 ```
 
@@ -265,7 +289,7 @@ Returned when description is clear.
 | Spanish | Spanish | "¿Quiénes son los usuarios objetivo?" |
 | Mixed | Primary language | Detect dominant language |
 
-**Detection:** System prompt instructs Claude to match input language.
+**Detection:** System prompt instructs AI to match input language.
 
 ---
 
@@ -276,9 +300,9 @@ Returned when description is clear.
 | `EMPTY_INPUT` | 400 | Input is empty | "Please enter a description" |
 | `TOO_SHORT` | 400 | Input < 10 chars | "Please enter at least 10 characters" |
 | `TOO_LONG` | 400 | Input > 2000 chars | "Description too long (max 2000 characters)" |
-| `API_TIMEOUT` | 504 | Claude didn't respond in 15s | "Preflight couldn't run this time. Try again." |
-| `API_ERROR` | 500 | Claude API error | "Service temporarily unavailable" |
-| `PARSE_ERROR` | 500 | Invalid JSON from Claude | "Could not analyze. Try rephrasing?" |
+| `API_TIMEOUT` | 504 | AI didn't respond in 15s | "Preflight couldn't run this time. Try again." |
+| `API_ERROR` | 500 | AI API error | "Service temporarily unavailable" |
+| `PARSE_ERROR` | 500 | Invalid response format | "Could not analyze. Try rephrasing?" |
 | `NETWORK_ERROR` | 0 | No network connection | "Connection error. Check your internet." |
 | `RATE_LIMITED` | 429 | Too many requests | "Too many requests. Wait a moment." |
 
@@ -363,7 +387,7 @@ E-commerce for selling handmade jewelry with Stripe payments
 ## DOCUMENT INTEGRITY
 
 **Document Type:** Reference (Single Source of Truth)  
-**Version:** 1.0  
+**Version:** 1.1  
 **Last Updated:** December 13, 2025  
 **Stream Coding:** v3.3 Compliant
 

@@ -75,7 +75,7 @@ App per gestire task del team
 | Layer | Technology |
 |-------|------------|
 | Frontend | Lovable (React + Tailwind) |
-| AI | Claude API via Lovable |
+| AI | Lovable AI (Gemini 2.5 Flash) — no API keys needed |
 | Hosting | Lovable deployment |
 
 ---
@@ -92,7 +92,8 @@ docs/
 ├── 02-technical-specs/
 │   ├── Part01_System_Prompt.md   # AI prompt specification
 │   ├── Part02_UI_Components.md   # UI specification
-│   └── Part03_Error_Handling.md  # Error scenarios
+│   ├── Part03_Error_Handling.md  # Error scenarios
+│   └── LOVABLE_PROMPT.md         # 🚀 Ready-to-paste prompt
 └── 03-schemas/
     └── 00_SCHEMA_REFERENCE.md    # Data models (single source)
 ```
@@ -102,10 +103,10 @@ docs/
 ## 🏃 Quick Start
 
 1. Open [Lovable](https://lovable.dev)
-2. Create new project
-3. Copy system prompt from `docs/02-technical-specs/Part01_System_Prompt.md`
-4. Paste into Lovable AI configuration
-5. Build UI per `docs/02-technical-specs/Part02_UI_Components.md`
+2. Create new project  
+3. Copy the ENTIRE prompt from `docs/02-technical-specs/LOVABLE_PROMPT.md`
+4. Paste into Lovable's input field and click "Chat"
+5. Lovable generates the app with AI integration included
 
 ---
 
