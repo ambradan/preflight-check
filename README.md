@@ -82,7 +82,38 @@ App per gestire task del team
 
 ---
 
-## 📖 Documentation
+## ⚡ Generation Stats
+
+> **The power of zero-ambiguity documentation**
+
+| Metric | Value |
+|--------|-------|
+| **Lovable Credits Used** | 4.9 (entire project including onboarding) |
+| **App Generation Time** | ~3 minutes |
+| **Bugs Found** | 0 |
+| **Refactoring Needed** | 0 |
+| **Rebuild Cycles** | 0 |
+
+**How?** We spent 4 hours writing documentation with [Stream Coding v3.3](https://www.stream-coding.com) methodology, then Lovable generated the complete app in one shot — no fixes, no iterations, no debugging.
+
+---
+
+## 📊 Hackathon Reports
+
+Detailed reports of the entire hackathon journey (December 13, 2025):
+
+- 🇮🇹 [**HACKATHON_SUMMARY_IT.md**](HACKATHON_SUMMARY_IT.md) - Report completo in italiano
+- 🇬🇧 [**HACKATHON_SUMMARY_EN.md**](HACKATHON_SUMMARY_EN.md) - Complete report in English
+
+Each report includes:
+- Timeline of all 10 commits with detailed descriptions
+- Contributor statistics and activity breakdown
+- Technologies used and files created
+- Complete development journey from 10:00 to 18:00 CET
+
+---
+
+## � Documentation
 
 This project follows **Stream Coding v3.3** methodology.
 

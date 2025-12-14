@@ -8,6 +8,18 @@
 **Linee di Codice Aggiunte**: ~12,000+
 **File Creati/Modificati**: 100+
 
+### ⚡ Generation Stats (Il Punto Chiave)
+
+| Metrica | Valore |
+|---------|--------|
+| **Crediti Lovable Usati** | 4.9 (app base + feature onboarding) |
+| **Tempo Generazione App** | ~3 minuti |
+| **Bug Trovati** | 0 |
+| **Refactoring Necessario** | 0 |
+| **Cicli di Rebuild** | 0 |
+
+> **Nota**: L'onboarding è una feature aggiuntiva generata da Lovable dopo l'implementazione iniziale.
+
 ---
 
 ## 📅 Timeline Dettagliata dei Commit
