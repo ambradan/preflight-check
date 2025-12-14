@@ -2,6 +2,8 @@
 
 **Find what's missing in your app idea before AI guesses wrong.**
 
+> 🏆 Built in 8 hours at [Building The Future Of Personal AI](https://lu.ma/zf2hu9qp?tk=vEwpRI) hackathon — OGR Torino, December 2025
+
 [![Built at](https://img.shields.io/badge/Built%20at-Building%20The%20Future%20Of%20Personal%20AI-yellow)](https://syllotips.notion.site/Build-The-Future-Of-Personal-AI-2025-Hacker-Manual-2b69dad185cf80e0b9cfded123ba8e60)
 [![Made with Lovable](https://img.shields.io/badge/Made%20with-Lovable-ff69b4)](https://lovable.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -115,8 +117,8 @@ docs/
 | Name | Role | Links |
 |------|------|-------|
 | **Ambra Danesin** | Product & Pitch | [LinkedIn](https://linkedin.com/in/ambradanesin) |
-| **Francesco Marinoni Moretto** | Development | [LinkedIn](https://linkedin.com/in/frmoretto) |
-| **Paolo Nugnes** | Testing & Validation | [LinkedIn](https://linkedin.com/in/paolonugnes) |
+| **Francesco Marinoni Moretto** | Development | [LinkedIn](https://www.linkedin.com/in/francesco-moretto/) |
+| **Paolo Nugnes** | Testing & Validation | [LinkedIn](https://www.linkedin.com/in/paolo-nugnes/) |
 
 ---
 
@@ -143,7 +145,7 @@ MIT License — see [LICENSE](LICENSE) file.
 
 - [Lovable](https://lovable.dev) for the vibe coding platform
 - [Anthropic](https://anthropic.com) for Claude
-- [Stream Coding](https://github.com/frmoretto/stream-coding) methodology
+- [Stream Coding](https://www.stream-coding.com) methodology ([GitHub](https://github.com/frmoretto/stream-coding))
 
 ---
 

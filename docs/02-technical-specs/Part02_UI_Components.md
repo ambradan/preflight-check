@@ -1,8 +1,8 @@
 # Preflight Check — Technical Specs — Part 02
 ## UI Components Specification
 
-**Version:** 2.0  
-**Last Updated:** December 13, 2025  
+**Version:** 2.1  
+**Last Updated:** December 14, 2025  
 **Status:** Implementation Ready  
 **Stream Coding:** v3.3 Compliant  
 **Document Type:** Implementation (HOW)
@@ -14,6 +14,7 @@
 1. [Overview](#1-overview)
 2. [Layout Specification](#2-layout-specification)
 3. [Component Specifications](#3-component-specifications)
+   - [3.10 Onboarding Components](#310-onboarding-components-first-time-user-experience)
 4. [State Management](#4-state-management)
 5. [Anti-Patterns (DO NOT)](#5-anti-patterns-do-not)
 6. [Test Case Specifications](#6-test-case-specifications)
@@ -424,6 +425,85 @@ const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry }) => (
 );
 ```
 
+### 3.10 Onboarding Components (First-Time User Experience)
+
+**Added:** December 13, 2025 (Hackathon hotfix, documented post-ship)
+
+#### 3.10.1 Onboarding Banner
+
+```tsx
+interface OnboardingBannerProps {
+  onDismiss: () => void;
+}
+
+const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onDismiss }) => (
+  <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded shadow-sm 
+                  flex justify-between items-center mb-4">
+    <p className="text-sm text-blue-900">
+      🎓 First time? Click 'Task manager' → then 'Run Preflight' to see it in action!
+    </p>
+    <button 
+      onClick={onDismiss}
+      className="text-blue-500 hover:text-blue-700 ml-2"
+    >
+      ✕
+    </button>
+  </div>
+);
+```
+
+| Property | Value |
+|----------|-------|
+| Position | Above preset chips |
+| Background | `bg-blue-50` |
+| Border | `border-l-4 border-blue-500` |
+| Visibility | First visit only |
+| localStorage key | `preflight_onboarding_seen` |
+
+#### 3.10.2 Pulsing Effects
+
+```tsx
+// On first visit, add pulsing to guide user
+const pulseClass = "ring-2 ring-blue-400 animate-pulse";
+
+// Apply to "Task manager" chip
+<Chip className={isFirstVisit ? pulseClass : ''}>Task manager</Chip>
+
+// Apply to "Run Preflight" button
+<Button className={isFirstVisit ? 'animate-pulse' : ''}>Run Preflight</Button>
+```
+
+| Element | Effect | Removal Trigger |
+|---------|--------|----------------|
+| "Task manager" chip | `ring-2 ring-blue-400 animate-pulse` | User clicks chip |
+| "Run Preflight" button | `animate-pulse` | User clicks button |
+
+#### 3.10.3 Onboarding State Logic
+
+```tsx
+const ONBOARDING_KEY = 'preflight_onboarding_seen';
+
+function useOnboarding() {
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem(ONBOARDING_KEY);
+  });
+  
+  const dismissOnboarding = () => {
+    localStorage.setItem(ONBOARDING_KEY, 'true');
+    setShowOnboarding(false);
+  };
+  
+  return { showOnboarding, dismissOnboarding };
+}
+```
+
+| Trigger | Action |
+|---------|--------|
+| First visit (no localStorage) | Show banner + pulse effects |
+| Click ✕ on banner | Hide banner, set localStorage |
+| Click "Run Preflight" | Hide all, set localStorage |
+| Return visit | No onboarding shown |
+
 ---
 
 ## 4. STATE MANAGEMENT
@@ -557,6 +637,9 @@ const MAX_LENGTH = 2000; // From Schema Reference
 | UI-05 | CharCounter | Input at 90% | Counter yellow |
 | UI-06 | ResultCard | Empty items array | Shows "None found" |
 | UI-07 | ErrorState | Click "Try Again" | Callback fires |
+| UI-08 | OnboardingBanner | First visit | Banner visible, chips/button pulsing |
+| UI-09 | OnboardingBanner | Click ✕ | Banner hidden, localStorage set |
+| UI-10 | OnboardingBanner | Return visit | Banner not shown |
 
 ### 6.2 Responsive Tests
 
@@ -640,9 +723,13 @@ For UI-specific error handling, see [Part03 Error Handling](./Part03_Error_Handl
 
 **Document Type:** Implementation (HOW)  
 **Part:** 2 of 3 (Technical Specs)  
-**Version:** 2.0  
-**Last Updated:** December 13, 2025  
+**Version:** 2.1  
+**Last Updated:** December 14, 2025  
 **Stream Coding:** v3.3 Compliant
+
+**Change Log:**
+- v2.1 (Dec 14): Added Section 3.10 Onboarding Components (hotfix documented post-ship)
+- v2.0 (Dec 13): Initial implementation-ready spec
 
 **Sections included per v3.3:**
 - ✅ Anti-patterns (Section 5)
