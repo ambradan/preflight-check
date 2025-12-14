@@ -113,7 +113,7 @@ Each report includes:
 
 ---
 
-## � Documentation
+## 📖 Documentation
 
 This project follows **Stream Coding v3.3** methodology.
 
